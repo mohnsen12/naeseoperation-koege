@@ -11,7 +11,7 @@
     * { box-sizing:border-box; }
     body { margin:0; background:var(--sand); color:var(--ink); font-family: "Avenir Next", Avenir, system-ui, sans-serif; line-height:1.55; }
     a { color:#256b61; text-underline-offset:3px; }
-    a:focus-visible, video:focus-visible { outline:3px solid #c87553; outline-offset:4px; }
+    a:focus-visible, video:focus-visible, input:focus-visible, select:focus-visible, button:focus-visible { outline:3px solid #c87553; outline-offset:4px; }
     .wrap { width:min(1120px, calc(100% - 40px)); margin:auto; }
     header { display:flex; align-items:center; gap:12px; padding:25px 0; border-bottom:1px solid var(--line); font-size:.79rem; font-weight:750; letter-spacing:.11em; text-transform:uppercase; color:var(--green); }
     .mark { width:29px; height:29px; display:grid; place-items:center; background:var(--green); color:white; border-radius:8px; font-size:22px; line-height:1; letter-spacing:0; }
@@ -30,8 +30,17 @@
     .details section { padding:25px; background:#fffef9; border:1px solid #e7e9df; border-radius:18px; }
     h2 { margin:0 0 10px; font-size:1.2rem; }
     .details p { margin:0; color:var(--sub); }
+    .sharing { margin-top:42px; padding:30px; background:#fffef9; border:1px solid #e0e8dd; border-radius:20px; box-shadow:0 12px 35px #334d3c0c; }
+    .sharing p { margin:0 0 21px; color:var(--sub); }
+    .sharing form { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; gap:16px; align-items:end; }
+    .sharing label { display:block; font-size:.9rem; font-weight:700; margin-bottom:7px; }
+    .sharing input, .sharing select { width:100%; min-height:50px; padding:11px 13px; border:1px solid #aebfb2; border-radius:9px; color:var(--ink); background:white; font:inherit; }
+    .sharing button { min-height:50px; border:0; border-radius:9px; padding:11px 20px; color:white; background:var(--green); font:inherit; font-weight:700; cursor:pointer; }
+    .sharing button:hover { background:#235e55; }
+    .sharing .help { font-size:.86rem; margin:13px 0 0; }
+    .video-label { margin:10px 5px 2px; color:var(--sub); font-size:.86rem; font-weight:600; }
     footer { padding:22px 0 35px; border-top:1px solid var(--line); color:var(--sub); font-size:.87rem; }
-    @media (max-width:760px) { main {padding-top:38px}.hero {grid-template-columns:1fr;gap:28px}.details {grid-template-columns:1fr;gap:14px;margin-top:32px}.note {margin-top:30px} }
+    @media (max-width:760px) { main {padding-top:38px}.hero {grid-template-columns:1fr;gap:28px}.details {grid-template-columns:1fr;gap:14px;margin-top:32px}.note {margin-top:30px}.sharing {padding:22px}.sharing form {grid-template-columns:1fr}.sharing button {width:100%} }
   </style>
 </head>
 <body>
@@ -43,16 +52,27 @@
           <span class="eyebrow">En kort guide til dit forløb</span>
           <h1>Din næse.<br>Dit forløb.</h1>
           <p class="lead">Få et overblik over forberedelsen, operationen og tiden bagefter, når du skal have opereret næseskillevæggen i Køge.</p>
-          <p class="meta">1 minut og 22 sekunder · Dansk tale og undertekster</p>
+          <p class="meta" id="video-meta">1 minut og 22 sekunder · Dansk tale og undertekster</p>
         </div>
         <div class="video">
-          <video controls playsinline preload="metadata" poster="forside.png" aria-label="Patientvideo om næseskillevægsoperation">
+          <video id="patient-video" controls playsinline preload="metadata" poster="forside.png" aria-label="Patientvideo om næseskillevægsoperation">
             <source src="video.mp4" type="video/mp4">
             <track kind="subtitles" src="undertekster.vtt" srclang="da" label="Dansk" default>
             Din browser kan ikke afspille videoen. <a href="video.mp4">Download videoen her</a>.
           </video>
+          <p class="video-label" id="video-label">Du ser: Hele videoen</p>
         </div>
       </div>
+      <section class="sharing" aria-labelledby="share-heading">
+        <h2 id="share-heading">Send videoen til en e-mailadresse</h2>
+        <p>Vælg, hvilken del modtageren skal se. E-mailen indeholder et link til videoen.</p>
+        <form id="share-form">
+          <div><label for="recipient">Modtagerens e-mailadresse</label><input id="recipient" name="email" type="email" autocomplete="email" placeholder="navn@eksempel.dk" required></div>
+          <div><label for="part">Vælg video</label><select id="part" name="part"><option value="hele">Hele videoen · 1:22</option><option value="foer">1. del · før og under operationen · 0:52</option><option value="efter">2. del · efter operationen · 0:30</option></select></div>
+          <button type="submit">Åbn e-mail</button>
+        </form>
+        <p class="help">Dit e-mailprogram åbner en kladde, som du selv kan gennemse og sende.</p>
+      </section>
       <aside class="note" aria-label="Om videoens indhold">
         <strong>Videoen er et udkast til faglig gennemgang.</strong>
         <p>Afdelingen i Køge skal kontrollere indhold og kontaktoplysninger, før videoen bruges som officiel patientvejledning. Følg altid din egen indkaldelse og de instrukser, du får fra afdelingen.</p>
@@ -64,5 +84,36 @@
     </main>
     <footer>Patientinformation · Illustreret video om næseskillevægsoperation</footer>
   </div>
+  <script>
+    (() => {
+      const parts = {
+        hele: { label: 'Hele videoen', file: 'video.mp4', captions: 'undertekster.vtt', time: '1 minut og 22 sekunder' },
+        foer: { label: '1. del · før og under operationen', file: 'foer-operation.mp4', captions: 'foer-operation.vtt', time: '52 sekunder' },
+        efter: { label: '2. del · efter operationen', file: 'efter-operation.mp4', captions: 'efter-operation.vtt', time: '30 sekunder' }
+      };
+      const query = new URLSearchParams(location.search).get('del');
+      const selected = Object.hasOwn(parts, query) ? query : 'hele';
+      const video = document.getElementById('patient-video');
+      const part = parts[selected];
+      if (selected !== 'hele') {
+        video.querySelector('source').src = part.file;
+        video.querySelector('track').src = part.captions;
+        video.load();
+      }
+      document.getElementById('video-label').textContent = 'Du ser: ' + part.label;
+      document.getElementById('video-meta').textContent = part.time + ' · Dansk tale og undertekster';
+      document.getElementById('part').value = selected;
+      document.getElementById('share-form').addEventListener('submit', event => {
+        event.preventDefault();
+        const choice = document.getElementById('part').value;
+        const recipient = document.getElementById('recipient').value.trim();
+        const link = new URL(location.pathname, location.origin);
+        if (choice !== 'hele') link.searchParams.set('del', choice);
+        const subject = 'Patientvideo: Næseskillevægsoperation i Køge';
+        const body = 'Hej\n\nHer er et link til patientvideoen om næseskillevægsoperation i Køge:\n\n' + parts[choice].label + '\n' + link.href + '\n\nFølg altid din egen indkaldelse og vejledningen fra afdelingen.\n';
+        location.href = 'mailto:' + encodeURIComponent(recipient) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      });
+    })();
+  </script>
 </body>
 </html>
